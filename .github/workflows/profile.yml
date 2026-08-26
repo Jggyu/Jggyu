@@ -21,16 +21,10 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+          node-version: 22
 
       - name: 의존성 설치
-        run: |
-          npm install pretendard --no-save
-          pip install fonttools brotli
+        run: npm install pretendard subset-font --no-save
 
       - name: SVG 생성
         run: node scripts/render-profile.mjs

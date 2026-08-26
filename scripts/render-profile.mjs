@@ -10,10 +10,9 @@
  * 필요: python3 + fonttools + brotli  (pip install fonttools brotli)
  */
 
-import { mkdir, writeFile, readFile, rm } from "node:fs/promises";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
+import { mkdir, writeFile, readFile } from "node:fs/promises";
 import { join } from "node:path";
+import subsetFont from "subset-font";
 
 const run = promisify(execFile);
 const OUT_DIR = process.env.OUT_DIR || "assets";
@@ -108,22 +107,9 @@ function usedChars() {
 
 async function subset(weight, chars) {
   const src = join(FONT_DIR, `Pretendard-${weight}.woff2`);
-  const out = join(TMP, `${weight}.woff2`);
-  const textFile = join(TMP, "chars.txt");
-  await writeFile(textFile, chars, "utf8");
-
-  await run("pyftsubset", [
-    src,
-    `--text-file=${textFile}`,
-    "--flavor=woff2",
-    `--output-file=${out}`,
-    "--layout-features=*",
-    "--no-hinting",
-    "--desubroutinize",
-  ]);
-
-  const buf = await readFile(out);
-  return buf.toString("base64");
+  const buf = await readFile(src);
+  const out = await subsetFont(buf, chars, { targetFormat: "woff2" });
+  return out.toString("base64");
 }
 
 function fontFace(family, weight, b64) {
@@ -223,7 +209,6 @@ function renderIndex(theme, fonts) {
 // ─────────────────────────────────────────── 실행
 
 async function main() {
-  await mkdir(TMP, { recursive: true });
   await mkdir(OUT_DIR, { recursive: true });
 
   const chars = usedChars();
@@ -244,7 +229,6 @@ async function main() {
     console.log(`${OUT_DIR}/hero-${theme}.svg, index-${theme}.svg 생성`);
   }
 
-  await rm(TMP, { recursive: true, force: true });
 }
 
 main().catch((err) => {
