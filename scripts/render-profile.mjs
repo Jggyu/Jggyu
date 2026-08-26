@@ -23,13 +23,13 @@ const FONT_DIR = "node_modules/pretendard/dist/web/static/woff2";
 const DATA = {
   name: "이진규",
   handle: "Jggyu",
-  sub: "전북대학교 IT정보공학과 · BoB 14기 보안컨설팅 · 정보보안기사",
-  now: "모의침투 정찰 단계를 자동화하는 도구를 만들고 있습니다.",
+  sub: "전북대학교 IT정보공학과",
+  now: "기술과 정책을 아우르는 전문가를 희망하고 있습니다.",
 
   sections: [
     {
       label: "Projects",
-      // [연도, 제목, 우측 메타, 초록 점 여부]
+      // [연도, 제목, 아래 줄에 붙는 메타, 초록 점 여부]
       rows: [
         ["2026", "모의침투 정찰 자동화 도구", "진행 중", true],
         ["2026", "CUITrail — 방산 공급망 컴플라이언스", "국방기술품질원장상"],
@@ -56,8 +56,11 @@ const DATA = {
       ],
     },
     {
-      label: "Tools",
-      rows: [["", "Python · FastAPI · React · Docker · Kubernetes · Burp Suite · Semgrep", ""]],
+      label: "Stack",
+      rows: [
+        ["", "C · C++ · Java · Python · JavaScript", ""],
+        ["", "FastAPI · React · Docker · Burp Suite", ""],
+      ],
     },
   ],
 };
@@ -86,10 +89,12 @@ const THEMES = {
 };
 
 const COL_YEAR = 0;
-const COL_TITLE = 56;
-const ROW_H = 27;
-const LABEL_GAP = 26;
-const SECTION_GAP = 40;
+const COL_TITLE = 52;
+const ROW_H = 30;       // 메타 없는 행
+const ROW_H2 = 49;      // 메타 있는 행 (두 줄)
+const META_DY = 19;     // 제목 → 메타 간격
+const LABEL_GAP = 28;
+const SECTION_GAP = 34;
 
 // ─────────────────────────────────────────── 폰트 서브셋
 
@@ -158,12 +163,12 @@ function renderHero(theme, fonts) {
 function renderIndex(theme, fonts) {
   const t = THEMES[theme];
   const parts = [];
-  let y = 18;
+  let y = 20;
   let i = 0;
 
   for (const [si, section] of DATA.sections.entries()) {
     parts.push(
-      `<text x="0" y="${y}" font-size="10" font-weight="600" letter-spacing="3.4" fill="${t.dim}">${esc(
+      `<text x="0" y="${y}" font-size="10" font-weight="600" letter-spacing="3.4" fill="${t.muted}">${esc(
         section.label.toUpperCase()
       )}</text>`
     );
@@ -175,32 +180,38 @@ function renderIndex(theme, fonts) {
 
       if (year) {
         row.push(
-          `<text x="${COL_YEAR}" y="${y}" font-size="12.5" font-weight="400" letter-spacing="0.3" fill="${t.dim}">${esc(year)}</text>`
+          `<text x="${COL_YEAR}" y="${y}" font-size="12" font-weight="400" letter-spacing="0.3" fill="${t.dim}">${esc(year)}</text>`
         );
       }
       row.push(
-        `<text x="${COL_TITLE}" y="${y}" font-size="15.5" font-weight="400" letter-spacing="-0.25" fill="${
+        `<text x="${COL_TITLE}" y="${y}" font-size="16.5" font-weight="${year ? 500 : 400}" letter-spacing="-0.3" fill="${
           year ? t.fg : t.body
         }">${esc(title)}</text>`
       );
+
+      // 메타는 우측 끝이 아니라 제목 바로 아래 — 눈이 900px를 건너다니지 않게
       if (meta) {
-        const dot = live ? `<circle cx="${W - 8}" cy="${y - 5}" r="3.5" fill="${t.accent}"/>` : "";
-        const mx = live ? W - 20 : W;
-        row.push(
-          `${dot}<text x="${mx}" y="${y}" text-anchor="end" font-size="12.5" font-weight="400" fill="${
-            live ? t.accent : t.muted
-          }">${esc(meta)}</text>`
-        );
+        const my = y + META_DY;
+        if (live) {
+          row.push(`<circle cx="${COL_TITLE + 4}" cy="${my - 4}" r="3.5" fill="${t.accent}"/>`);
+          row.push(
+            `<text x="${COL_TITLE + 16}" y="${my}" font-size="12.5" font-weight="500" fill="${t.accent}">${esc(meta)}</text>`
+          );
+        } else {
+          row.push(
+            `<text x="${COL_TITLE}" y="${my}" font-size="12.5" font-weight="400" fill="${t.muted}">${esc(meta)}</text>`
+          );
+        }
       }
 
       parts.push(`<g class="fade" style="animation-delay:${delay}s">${row.join("")}</g>`);
-      y += ROW_H;
+      y += meta ? ROW_H2 : ROW_H;
     }
 
-    if (si < DATA.sections.length - 1) y += SECTION_GAP - ROW_H + 12;
+    if (si < DATA.sections.length - 1) y += SECTION_GAP;
   }
 
-  const H = y - ROW_H + 14;
+  const H = y - 6;
   return svgWrap(W, H, fonts, parts.join("\n"), "프로젝트 · 논문 · 이력 목록");
 }
 
