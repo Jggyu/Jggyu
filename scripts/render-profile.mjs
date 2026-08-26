@@ -7,16 +7,14 @@
  *
  *   node scripts/render-profile.mjs
  *
- * 필요: python3 + fonttools + brotli  (pip install fonttools brotli)
+ * 필요: npm install pretendard subset-font
  */
 
 import { mkdir, writeFile, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import subsetFont from "subset-font";
 
-const run = promisify(execFile);
 const OUT_DIR = process.env.OUT_DIR || "assets";
-const TMP = ".font-tmp";
 const FONT_DIR = "node_modules/pretendard/dist/web/static/woff2";
 
 // ─────────────────────────────────────────── 내용
@@ -25,8 +23,8 @@ const FONT_DIR = "node_modules/pretendard/dist/web/static/woff2";
 const DATA = {
   name: "이진규",
   handle: "Jggyu",
-  sub: "전북대학교 IT정보공학과",
-  now: "기술과 정책을 아우르는 전문가를 희망하고 있습니다.",
+  sub: "전북대학교 IT정보공학과 · BoB 14기 보안컨설팅 · 정보보안기사",
+  now: "모의침투 정찰 단계를 자동화하는 도구를 만들고 있습니다.",
 
   sections: [
     {
@@ -228,7 +226,6 @@ async function main() {
     await writeFile(join(OUT_DIR, `index-${theme}.svg`), renderIndex(theme, fonts), "utf8");
     console.log(`${OUT_DIR}/hero-${theme}.svg, index-${theme}.svg 생성`);
   }
-
 }
 
 main().catch((err) => {
