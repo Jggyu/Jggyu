@@ -10,7 +10,7 @@
 <text x="290" y="82" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="10" fill="#565E68">Last 90 days</text>
 <line x1="560" y1="2" x2="560" y2="86" stroke="#21262D" stroke-width="1"/>
 <text x="580" y="12" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="9" letter-spacing="1.8" fill="#565E68">LANGUAGES</text>
-<text x="580" y="36" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="17" font-weight="400" fill="#E6EDF3">JavaScript<tspan font-size="13" fill="#7D8590"> 81%</tspan></text>
-<rect x="580.00" y="63" width="201.50" height="3" rx="1.5" fill="#2EA043"/><rect x="782.50" y="63" width="21.50" height="3" rx="1.5" fill="#4A5560"/><rect x="805.00" y="63" width="9.00" height="3" rx="1.5" fill="#39414B"/><rect x="815.00" y="63" width="14.00" height="3" rx="1.5" fill="#2A313A"/>
-<text x="580" y="82" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="10" fill="#565E68">Java 9 · CSS 4 · etc 6</text>
+<text x="580" y="36" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="17" font-weight="400" fill="#E6EDF3">JavaScript<tspan font-size="13" fill="#7D8590"> 82%</tspan></text>
+<rect x="580.00" y="63" width="204.00" height="3" rx="1.5" fill="#2EA043"/><rect x="785.00" y="63" width="21.50" height="3" rx="1.5" fill="#4A5560"/><rect x="807.50" y="63" width="9.00" height="3" rx="1.5" fill="#39414B"/><rect x="817.50" y="63" width="11.50" height="3" rx="1.5" fill="#2A313A"/>
+<text x="580" y="82" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="10" fill="#565E68">Java 9 · CSS 4 · etc 5</text>
 </svg>
