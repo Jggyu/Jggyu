@@ -4,15 +4,12 @@
 
 **기술과 정책을 아우르는 전문가를 희망하고 있습니다.**
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./assets/contrib-dark.svg">
-  <img src="./assets/contrib-light.svg" width="900" alt="최근 1년 기여 그래프">
-</picture>
+<img src="https://github-readme-activity-graph.vercel.app/graph?username=Jggyu&days=90&area=true&hide_border=true&hide_title=true&grid=false&radius=0&height=300&bg_color=00000000&color=7D8590&title_color=2EA043&line=2EA043&point=57D96B&area_color=2EA043" width="900" alt="최근 90일 활동">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./assets/stats-dark.svg">
-  <img src="./assets/stats-light.svg" width="900" alt="Hack The Box · 커밋 리듬 · 언어 분포">
-</picture>
+<img src="https://github-readme-stats.vercel.app/api?username=Jggyu&show_icons=true&include_all_commits=true&rank_icon=github&hide_title=true&hide_border=true&card_width=430&bg_color=00000000&text_color=7D8590&icon_color=2EA043&title_color=2EA043" width="430" alt="GitHub 통계"> <img src="https://github-readme-stats.vercel.app/api/top-langs?username=Jggyu&layout=compact&langs_count=6&hide_title=true&hide_border=true&card_width=430&bg_color=00000000&text_color=7D8590&title_color=2EA043" width="430" alt="주요 언어">
+
+
+<img src="https://streak-stats.demolab.com?user=Jggyu&hide_border=true&background=00000000&ring=2EA043&fire=57D96B&currStreakNum=7D8590&sideNums=7D8590&currStreakLabel=7D8590&sideLabels=7D8590&dates=565E68" width="430" alt="연속 기여">
 
 ---
 
