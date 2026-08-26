@@ -1,0 +1,23 @@
+{
+  "login": "Jggyu",
+
+  "hackthebox": {
+    "rank": "Pro Hacker",
+    "progress": 63,
+    "foot": "Machines 42 · Challenges 18"
+  },
+
+  "rhythm": {
+    "value": "22:00 – 02:00",
+    "foot": "Last 90 days",
+    "hours": [3, 2, 1, 1, 1, 0, 0, 1, 2, 4, 6, 7, 8, 7, 6, 7, 9, 11, 13, 16, 20, 26, 31, 28]
+  },
+
+  "_languages_note": "비워두면 토큰으로 자동 집계한다. 아래는 집계 실패 시 쓰이는 값.",
+  "languages": [
+    { "name": "Python", "pct": 46 },
+    { "name": "Java", "pct": 21 },
+    { "name": "TypeScript", "pct": 18 },
+    { "name": "etc", "pct": 15 }
+  ]
+}
