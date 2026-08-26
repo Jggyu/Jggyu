@@ -9,7 +9,7 @@
   <img src="https://raw.githubusercontent.com/Jggyu/Jggyu/output/snake-light.svg" width="900" alt="기여 그래프">
 </picture>
 
-<img src="https://github-readme-stats.vercel.app/api?username=Jggyu&show_icons=true&include_all_commits=true&rank_icon=github&hide_title=true&hide_border=true&card_width=430&bg_color=00000000&text_color=7D8590&icon_color=2EA043&title_color=2EA043" width="430" alt="GitHub 통계"> <img src="https://github-readme-stats.vercel.app/api/top-langs?username=Jggyu&layout=compact&langs_count=6&hide_title=true&hide_border=true&card_width=430&bg_color=00000000&text_color=7D8590&title_color=2EA043" width="430" alt="주요 언어">
+<img src="https://githubcard.com/Jggyu.svg" width="900" alt="GitHub 카드">
 
 ---
 
