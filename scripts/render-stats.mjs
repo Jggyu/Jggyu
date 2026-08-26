@@ -18,7 +18,7 @@ const DEMO = process.argv.includes("--demo");
 
 // ─────────────────────────────────────────── 치수
 
-const W = 830;
+const W = 900;
 const H = 92;
 const COLS = 3;
 const SEP = 40;                                  // 열 사이 여백

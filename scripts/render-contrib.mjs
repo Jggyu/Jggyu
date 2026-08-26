@@ -19,37 +19,51 @@ import { join } from "node:path";
 const LOGIN = process.env.LOGIN || "Jggyu";
 const OUT_DIR = process.env.OUT_DIR || "assets";
 const DEMO = process.argv.includes("--demo");
-
-// 아이소메트릭 지오메트리
 const num = (k, v) => Number(process.env[k] ?? v);
-const TW = num("TW", 11);      // 타일 반너비
-const TH = num("TH", 2.8);     // 타일 반높이 (작을수록 띠가 낮게 눕는다)
-const GAP = num("GAP", 0.86);  // 블록 사이 틈 — 1이면 딱 붙는다
-const BASE = num("BASE", 2.5); // 기여 0일의 두께
-const UNIT = num("UNIT", 6);   // 레벨 1당 높이
-const SVG_W = 830;             // README에서의 기본 폭
 
-// 팔레트
+/**
+ * 투영 벡터
+ *   A = 주(week) 축 — 오른쪽 아래로
+ *   B = 요일(day) 축 — 오른쪽 위로 (화면 안쪽)
+ * 두 축을 반대 방향으로 벌리면 길쭉한 대각선 띠가 아니라
+ * 가로로 넓은 평행사변형이 나온다.
+ */
+const AX = num("AX", 11.5);
+const AY = num("AY", 2.4);
+const BX = num("BX", 7.0);
+const BY = num("BY", -5.0);
+
+const GAP = num("GAP", 0.12);   // 블록 사이 틈 (0~0.3)
+const MIN_H = num("MIN_H", 4);  // 기여가 있는 날의 최소 높이
+const MAX_H = num("MAX_H", 40); // 최대 높이
+const IDLE_H = num("IDLE_H", 1.4); // 기여 0일의 두께
+const PLATE_H = num("PLATE_H", 9); // 받침대 두께
+const PAD = num("PAD", 26);     // 받침대 여백
+const SVG_W = 900;
+
+const WEEKS = 53;
+const DAYS = 7;
+
 const THEMES = {
   dark: {
-    tops: ["#171C24", "#1B4A2B", "#238636", "#2EA043", "#3FB950"],
-    left: 0.55,
-    right: 0.75,
+    plate: "#12171E",
+    idle: "#1B222B",
+    ramp: ["#1E4E2E", "#238636", "#2EA043", "#3FB950", "#57D96B"],
+    tick: "#4A535E",
+    left: 0.62,
+    right: 0.42,
   },
   light: {
-    tops: ["#EBEDF0", "#AEE1BC", "#6FC38A", "#3BA55C", "#1A7F37"],
-    left: 0.72,
-    right: 0.86,
+    plate: "#E8ECF0",
+    idle: "#DCE2E8",
+    ramp: ["#BFE5CB", "#8ED0A3", "#57B87A", "#2E9B58", "#1A7F37"],
+    tick: "#9AA5B1",
+    left: 0.9,
+    right: 0.78,
   },
 };
 
-const LEVEL = {
-  NONE: 0,
-  FIRST_QUARTILE: 1,
-  SECOND_QUARTILE: 2,
-  THIRD_QUARTILE: 3,
-  FOURTH_QUARTILE: 4,
-};
+const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
 // ─────────────────────────────────────────── 데이터
 
@@ -60,12 +74,7 @@ const QUERY = `
         contributionCalendar {
           totalContributions
           weeks {
-            contributionDays {
-              date
-              weekday
-              contributionCount
-              contributionLevel
-            }
+            contributionDays { date weekday contributionCount }
           }
         }
       }
@@ -83,18 +92,11 @@ async function fetchCalendar(login, token) {
     },
     body: JSON.stringify({ query: QUERY, variables: { login } }),
   });
-
-  if (!res.ok) {
-    throw new Error(`GitHub API ${res.status} ${res.statusText}`);
-  }
+  if (!res.ok) throw new Error(`GitHub API ${res.status} ${res.statusText}`);
 
   const json = await res.json();
-  if (json.errors?.length) {
-    throw new Error(json.errors.map((e) => e.message).join("; "));
-  }
-  if (!json.data?.user) {
-    throw new Error(`사용자를 찾을 수 없음: ${login}`);
-  }
+  if (json.errors?.length) throw new Error(json.errors.map((e) => e.message).join("; "));
+  if (!json.data?.user) throw new Error(`사용자를 찾을 수 없음: ${login}`);
 
   return json.data.user.contributionsCollection.contributionCalendar;
 }
@@ -110,127 +112,173 @@ function demoCalendar() {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 
+  const start = new Date(Date.UTC(2025, 7, 31)); // 일요일에서 시작
   const weeks = [];
   let total = 0;
-  for (let w = 0; w < 53; w++) {
-    const days = [];
-    for (let d = 0; d < 7; d++) {
-      const recency = w / 52;
-      let density = 0.22 + 0.5 * recency;
-      if (d === 0 || d === 6) density *= 0.5;
-      if (w > 10 && w < 15) density *= 0.25;
 
-      let level = 0;
+  for (let w = 0; w < WEEKS; w++) {
+    const days = [];
+    for (let d = 0; d < DAYS; d++) {
+      const recency = w / (WEEKS - 1);
+      let density = 0.24 + 0.48 * recency;
+      if (d === 0 || d === 6) density *= 0.5;
+      if (w > 10 && w < 15) density *= 0.2;
+
       let count = 0;
       if (rnd() < density) {
-        level = Math.min(4, 1 + Math.floor(rnd() * 4 * (0.35 + 0.65 * recency)));
-        count = level * 3 + Math.floor(rnd() * 4);
+        count = 1 + Math.floor(rnd() * rnd() * (6 + 22 * recency));
       }
       total += count;
-      days.push({ weekday: d, contributionCount: count, _level: level });
+
+      const date = new Date(start);
+      date.setUTCDate(start.getUTCDate() + w * 7 + d);
+      days.push({
+        date: date.toISOString().slice(0, 10),
+        weekday: d,
+        contributionCount: count,
+      });
     }
     weeks.push({ contributionDays: days });
   }
   return { totalContributions: total, weeks };
 }
 
-// ─────────────────────────────────────────── 렌더
+// ─────────────────────────────────────────── 기하
+
+const round = (n) => Math.round(n * 100) / 100;
+const pt = ([x, y]) => `${round(x)},${round(y)}`;
+const poly = (points, fill) => `<polygon points="${points.map(pt).join(" ")}" fill="${fill}"/>`;
 
 function shade(hex, k) {
   const n = parseInt(hex.slice(1), 16);
-  const r = Math.round(((n >> 16) & 255) * k);
-  const g = Math.round(((n >> 8) & 255) * k);
-  const b = Math.round((n & 255) * k);
-  return `rgb(${r},${g},${b})`;
+  const c = (v) => Math.max(0, Math.min(255, Math.round(v * k)));
+  return `rgb(${c((n >> 16) & 255)},${c((n >> 8) & 255)},${c(n & 255)})`;
 }
 
-const round = (n) => Math.round(n * 100) / 100;
+/** 격자 좌표 → 화면 좌표 */
+const project = (w, d) => [w * AX + d * BX, w * AY + d * BY];
 
-function cellsFrom(calendar) {
-  const cells = [];
+/**
+ * 밑면 네 꼭짓점에서 높이 h 만큼 솟은 상자를 그린다.
+ * 보이는 면은 윗면 + 앞왼쪽 + 앞오른쪽 세 개.
+ */
+function box(w, d, h, top, theme, span = 1) {
+  const a = [AX * (1 - GAP), AY * (1 - GAP)];
+  const b = [BX * (1 - GAP) * span, BY * (1 - GAP) * span];
+  const o = project(w + GAP / 2, d + GAP / 2);
+
+  const c0 = o;
+  const c1 = [o[0] + a[0], o[1] + a[1]];
+  const c2 = [o[0] + a[0] + b[0], o[1] + a[1] + b[1]];
+  const c3 = [o[0] + b[0], o[1] + b[1]];
+  const up = (p) => [p[0], p[1] - h];
+
+  return (
+    poly([c0, c1, up(c1), up(c0)], shade(top, theme.left)) +
+    poly([c1, c2, up(c2), up(c1)], shade(top, theme.right)) +
+    poly([up(c0), up(c1), up(c2), up(c3)], top)
+  );
+}
+
+/** 전체를 받치는 판 — 이게 있어야 떠 있지 않고 물체로 보인다 */
+function plate(theme) {
+  const m = PAD / 20;
+  const c0 = project(-m, -m);
+  const c1 = project(WEEKS + m, -m);
+  const c2 = project(WEEKS + m, DAYS + m);
+  const c3 = project(-m, DAYS + m);
+  const down = (p) => [p[0], p[1] + PLATE_H];
+
+  return (
+    poly([c0, c1, down(c1), down(c0)], shade(theme.plate, theme.left * 0.85)) +
+    poly([c1, c2, down(c2), down(c1)], shade(theme.plate, theme.right * 0.85)) +
+    poly([c0, c1, c2, c3], theme.plate)
+  );
+}
+
+/** 판 앞쪽 모서리를 따라가는 월 눈금 */
+function monthTicks(calendar, theme) {
+  const angle = (Math.atan2(AY, AX) * 180) / Math.PI;
+  const out = [];
+  let last = -1;
+
   calendar.weeks.forEach((week, w) => {
-    week.contributionDays.forEach((day) => {
-      const level =
-        day._level !== undefined ? day._level : LEVEL[day.contributionLevel] ?? 0;
-      cells.push({ w, d: day.weekday, level, count: day.contributionCount });
-    });
+    const first = week.contributionDays[0];
+    if (!first?.date) return;
+    const month = Number(first.date.slice(5, 7)) - 1;
+    if (month === last) return;
+    last = month;
+    if (w < 1 || w > WEEKS - 3) return;
+
+    const [x, y] = project(w, -(PAD / 20) - 0.35);
+    out.push(
+      `<text x="${round(x)}" y="${round(y + PLATE_H + 13)}" transform="rotate(${round(angle)} ${round(x)} ${round(y + PLATE_H + 13)})" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="8" letter-spacing="1.4" fill="${theme.tick}">${MONTHS[month]}</text>`
+    );
   });
-  // 뒤쪽부터 앞쪽으로 — 화가 알고리즘
-  cells.sort((a, b) => a.w + a.d - (b.w + b.d));
-  return cells;
+
+  return out.join("");
 }
+
+// ─────────────────────────────────────────── 렌더
 
 function renderSVG(calendar, themeName) {
   const theme = THEMES[themeName];
-  const cells = cellsFrom(calendar);
 
-  // 같은 레벨 안에서도 기여가 많은 날은 살짝 더 높게
-  const maxCount = Math.max(1, ...cells.map((c) => c.count));
+  const cells = [];
+  calendar.weeks.forEach((week, w) => {
+    week.contributionDays.forEach((day) => {
+      cells.push({ w, d: day.weekday, count: day.contributionCount });
+    });
+  });
 
-  const body = cells
+  // 이상치 하나에 전체가 눌리지 않도록 상위 5% 지점을 기준으로 잡는다
+  const counts = cells.map((c) => c.count).filter((n) => n > 0).sort((a, b) => a - b);
+  const cap = Math.max(1, counts[Math.floor(counts.length * 0.95)] || 1);
+  const peak = Math.max(1, counts[counts.length - 1] || 1);
+
+  const heightOf = (count) => {
+    if (count <= 0) return IDLE_H;
+    const t = Math.min(count, cap) / cap;
+    return MIN_H + Math.pow(t, 0.75) * (MAX_H - MIN_H);
+  };
+  const colorOf = (count) => {
+    if (count <= 0) return theme.idle;
+    const t = Math.min(count, cap) / cap;
+    return theme.ramp[Math.min(theme.ramp.length - 1, Math.floor(t * theme.ramp.length))];
+  };
+
+  // 화면 위쪽(먼 곳)부터 그린다
+  cells.sort((a, b) => a.w * AY + a.d * BY - (b.w * AY + b.d * BY));
+
+  const blocks = cells
     .map((c) => {
-      const sx = (c.w - c.d) * TW;
-      const sy = (c.w + c.d) * TH;
-      const bonus = c.level === 0 ? 0 : (Math.min(c.count, maxCount) / maxCount) * 4;
-      const h = BASE + c.level * UNIT + bonus;
-      const top = theme.tops[c.level];
-
-      const pts = (arr) => arr.map(([x, y]) => `${round(x)},${round(y)}`).join(" ");
-
-      // 위치는 격자 그대로, 그리기만 살짝 줄여서 블록 사이에 틈을 만든다
-      const tw = TW * GAP;
-      const th = TH * GAP;
-      const cy = sy + TH; // 타일 중심
-
-      const faceL = pts([
-        [sx - tw, cy - h],
-        [sx, cy + th - h],
-        [sx, cy + th],
-        [sx - tw, cy],
-      ]);
-      const faceR = pts([
-        [sx, cy + th - h],
-        [sx + tw, cy - h],
-        [sx + tw, cy],
-        [sx, cy + th],
-      ]);
-      const faceT = pts([
-        [sx, cy - th - h],
-        [sx + tw, cy - h],
-        [sx, cy + th - h],
-        [sx - tw, cy - h],
-      ]);
-
-      const delay = (c.w + c.d) * 7;
-
-      return (
-        `<g class="c" style="animation-delay:${delay}ms">` +
-        `<polygon points="${faceL}" fill="${shade(top, theme.left)}"/>` +
-        `<polygon points="${faceR}" fill="${shade(top, theme.right)}"/>` +
-        `<polygon points="${faceT}" fill="${top}"/>` +
-        `</g>`
-      );
+      const h = heightOf(c.count);
+      const delay = Math.round(c.w * 6 + (DAYS - c.d) * 3);
+      return `<g class="c" style="animation-delay:${delay}ms">${box(c.w, c.d, h, colorOf(c.count), theme)}</g>`;
     })
     .join("");
 
-  // 내용 경계에 맞춰 뷰박스를 잡는다
-  const maxH = BASE + 4 * UNIT + 4;
-  const x0 = -6 * TW - TW - 6;
-  const x1 = 52 * TW + TW + 6;
-  const y0 = -TH - maxH - 6;
-  const y1 = 58 * TH + TH + 6;
+  // 뷰박스 — 네 모서리를 모두 담는다
+  const corners = [project(0, 0), project(WEEKS, 0), project(WEEKS, DAYS), project(0, DAYS)];
+  const xs = corners.map((p) => p[0]);
+  const ys = corners.map((p) => p[1]);
+  const x0 = Math.min(...xs) - PAD;
+  const x1 = Math.max(...xs) + PAD;
+  const y0 = Math.min(...ys) - MAX_H - 10;
+  const y1 = Math.max(...ys) + PLATE_H + 22;
   const vbW = round(x1 - x0);
   const vbH = round(y1 - y0);
-  const viewBox = `${round(x0)} ${round(y0)} ${vbW} ${vbH}`;
   const height = Math.round((SVG_W * vbH) / vbW);
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${SVG_W}" height="${height}" viewBox="${viewBox}" role="img" aria-label="${LOGIN}의 최근 1년 기여 그래프 — 총 ${calendar.totalContributions}회">
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${SVG_W}" height="${height}" viewBox="${round(x0)} ${round(y0)} ${vbW} ${vbH}" role="img" aria-label="${LOGIN}의 최근 1년 기여 — 총 ${calendar.totalContributions}회, 최다 ${peak}회">
 <style>
-.c{animation:rise .5s cubic-bezier(.2,.75,.3,1) backwards}
-@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.c{animation:r .55s cubic-bezier(.2,.8,.3,1) backwards}
+@keyframes r{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.c{animation:none}}
 </style>
-${body}
+${plate(theme)}
+${monthTicks(calendar, theme)}
+${blocks}
 </svg>
 `;
 }
@@ -253,13 +301,11 @@ async function main() {
   }
 
   await mkdir(OUT_DIR, { recursive: true });
-
   for (const name of Object.keys(THEMES)) {
     const file = join(OUT_DIR, `contrib-${name}.svg`);
     await writeFile(file, renderSVG(calendar, name), "utf8");
     console.log(`${file} 생성`);
   }
-
   console.log(`총 기여 ${calendar.totalContributions}회`);
 }
 

@@ -6,12 +6,12 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/contrib-dark.svg">
-  <img src="./assets/contrib-light.svg" width="830" alt="최근 1년 기여 그래프">
+  <img src="./assets/contrib-light.svg" width="900" alt="최근 1년 기여 그래프">
 </picture>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/stats-dark.svg">
-  <img src="./assets/stats-light.svg" width="830" alt="Hack The Box · 커밋 리듬 · 언어 분포">
+  <img src="./assets/stats-light.svg" width="900" alt="Hack The Box · 커밋 리듬 · 언어 분포">
 </picture>
 
 ---
