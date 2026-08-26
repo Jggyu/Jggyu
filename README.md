@@ -4,9 +4,12 @@
 
 **기술과 정책을 아우르는 전문가를 희망하고 있습니다.**
 
-<img src="./profile-summary-card-output/transparent/0-profile-details.svg" width="900" alt="프로필 요약">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Jggyu/Jggyu/output/snake-dark.svg">
+  <img src="https://raw.githubusercontent.com/Jggyu/Jggyu/output/snake-light.svg" width="900" alt="기여 그래프">
+</picture>
 
-<img src="./profile-summary-card-output/transparent/4-productive-time.svg" width="430" alt="시간대별 활동"> <img src="./profile-summary-card-output/transparent/2-most-commit-language.svg" width="430" alt="주요 언어">
+<img src="https://github-readme-stats.vercel.app/api?username=Jggyu&show_icons=true&include_all_commits=true&rank_icon=github&hide_title=true&hide_border=true&card_width=430&bg_color=00000000&text_color=7D8590&icon_color=2EA043&title_color=2EA043" width="430" alt="GitHub 통계"> <img src="https://github-readme-stats.vercel.app/api/top-langs?username=Jggyu&layout=compact&langs_count=6&hide_title=true&hide_border=true&card_width=430&bg_color=00000000&text_color=7D8590&title_color=2EA043" width="430" alt="주요 언어">
 
 ---
 
